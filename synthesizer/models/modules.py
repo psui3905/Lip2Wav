@@ -245,6 +245,8 @@ class EncoderConvolutions3D:
                 strides=strides,
                 activation=None,
                 padding=padding)
+            # Freeze each conv3d block
+            conv3d_output.trainable = False
             batched = tf.layers.batch_normalization(conv3d_output, training=is_training)
             if residual:
                 batched = batched + inputs
