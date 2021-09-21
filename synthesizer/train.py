@@ -151,6 +151,10 @@ def train(log_dir, args, hparams):
     loss_window = ValueWindow(100)
     saver = tf.train.Saver(max_to_keep=2)
     
+    # create conv3d saver
+    chunk_weight = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, 'Tacotron_model/inference/encoder_convolutions')
+    conv3d_saver = tf.train.Saver(var_list=chunk_weight)
+    
     log("Tacotron training set to a maximum of {} steps".format(args.tacotron_train_steps))
     
     # Memory allocation on the GPU as needed
@@ -181,12 +185,30 @@ def train(log_dir, args, hparams):
                     
                     else:
                         log("No model to load at {}".format(save_dir), slack=True)
+                        conv3d_saver.restore(sess, hparams.conv3d_ckpt)
+                        trainable_collection = tf.get_collection_ref(tf.GraphKeys.TRAINABLE_VARIABLES)
+                        variables_to_remove = list()
+                        for vari in trainable_collection:
+                            #uses the attribute 'name' of the variable
+                            if "Tacotron_model/inference/encoder_convolutions" in vari.name:
+                                variables_to_remove.append(vari)
+                        for rem in variables_to_remove:
+                            trainable_collection.remove(rem)
                         saver.save(sess, checkpoint_fpath, global_step=global_step)
                 
                 except tf.errors.OutOfRangeError as e:
                     log("Cannot restore checkpoint: {}".format(e), slack=True)
             else:
                 log("Starting new training!", slack=True)
+                conv3d_saver.restore(sess, hparams.conv3d_ckpt)
+                trainable_collection = tf.get_collection_ref(tf.GraphKeys.TRAINABLE_VARIABLES)
+                variables_to_remove = list()
+                for vari in trainable_collection:
+                    #uses the attribute 'name' of the variable
+                    if "Tacotron_model/inference/encoder_convolutions" in vari.name:
+                        variables_to_remove.append(vari)
+                for rem in variables_to_remove:
+                    trainable_collection.remove(rem)
                 saver.save(sess, checkpoint_fpath, global_step=global_step)
             
             # initializing feeder
@@ -197,9 +219,12 @@ def train(log_dir, args, hparams):
             # Training loop
             while not coord.should_stop() and step < args.tacotron_train_steps:
                 start_time = time.time()
+                conv3d_var = tf.global_variables(scope='Tacotron_model/inference/encoder_convolutions/conv_layer_1_encoder_convolutions/conv3d/bias:0')[0]
                 step, loss, opt = sess.run([global_step, model.loss, model.optimize])
                 time_window.append(time.time() - start_time)
                 loss_window.append(loss)
+                
+                print(conv3d_var)
                 message = "Step {:7d} [{:.3f} sec/step, loss={:.5f}, avg_loss={:.5f}]".format(
                     step, time_window.average, loss, loss_window.average)
                 log(message, end="\r", slack=(step % args.checkpoint_interval == 0))

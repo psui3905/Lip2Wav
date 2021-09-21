@@ -332,6 +332,7 @@ hparams = HParams(
 
     ###Speech synthesis from lips###
     eval_ckpt="synthesizer/saved_models/logs-final/taco_pretrained/tacotron_model.ckpt-159000",
+    conv3d_ckpt='./conv3d_weight/conv3d.ckpt',
     
     speaker="unset",
     T=90,
