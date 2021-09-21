@@ -220,7 +220,7 @@ def train(log_dir, args, hparams):
             while not coord.should_stop() and step < args.tacotron_train_steps:
                 start_time = time.time()
                 conv3d_var = tf.global_variables(scope='Tacotron_model/inference/encoder_convolutions/conv_layer_1_encoder_convolutions/conv3d/bias:0')[0]
-                step, loss, opt = sess.run([global_step, model.loss, model.optimize])
+                step, loss, opt, conv3d_var = sess.run([global_step, model.loss, model.optimize, conv3d_var])
                 time_window.append(time.time() - start_time)
                 loss_window.append(loss)
                 
