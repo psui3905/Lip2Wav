@@ -244,6 +244,7 @@ class EncoderConvolutions3D:
                 kernel_size=kernel_size,
                 strides=strides,
                 activation=None,
+                trainable=False,
                 padding=padding)
             # Freeze each conv3d block
             conv3d_output.trainable = False
