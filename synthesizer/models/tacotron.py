@@ -502,8 +502,9 @@ class Tacotron():
                 grad = tf.reduce_mean(grad, 0)
                 
                 v = grad_and_vars[0][1]
-                avg_grads.append(grad)
-                vars.append(v)
+                if 'Tacotron_model/inference/encoder_convolutions' not in v.name:
+                    avg_grads.append(grad)
+                    vars.append(v)
             
             self.gradients = avg_grads
             # Just for causion
