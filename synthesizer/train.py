@@ -154,7 +154,7 @@ def train(log_dir, args, hparams):
     # create conv3d saver
     chunk_weight = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, 'Tacotron_model/inference/encoder_convolutions')
     # chunk_weight = tf.get_collection(tf.GraphKeys.UPDATE_OPS, 'Tacotron_model/inference/encoder_convolutions')
-    print(chunk_weight)
+    #print(chunk_weight)
     conv3d_saver = tf.train.Saver(var_list=chunk_weight)
     
     log("Tacotron training set to a maximum of {} steps".format(args.tacotron_train_steps))
@@ -218,15 +218,19 @@ def train(log_dir, args, hparams):
             print ("Feeder is initialized....")
             print ("Ready to train....")
             
+            #previous_con3d_var = None
             # Training loop
             while not coord.should_stop() and step < args.tacotron_train_steps:
                 start_time = time.time()
-                conv3d_var = tf.global_variables(scope='Tacotron_model/inference/encoder_convolutions/conv_layer_1_encoder_convolutions/conv3d/bias:0')[0]
-                step, loss, opt, conv3d_var = sess.run([global_step, model.loss, model.optimize, conv3d_var])
+                #conv3d_var = tf.global_variables(scope='Tacotron_model/inference/encoder_convolutions/conv_layer_1_encoder_convolutions/conv3d')[0]
+                #print(conv3d_var)
+                step, loss, opt = sess.run([global_step, model.loss, model.optimize])
                 time_window.append(time.time() - start_time)
                 loss_window.append(loss)
-                
-                # print(conv3d_var)
+                #if previous_con3d_var is not None:
+                #    print(tf.math.equal(previous_con3d_var, conv3d_var))
+                #previous_con3d_var = conv3d_var
+                #print(conv3d_var[0][0])
                 message = "Step {:7d} [{:.3f} sec/step, loss={:.5f}, avg_loss={:.5f}]".format(
                     step, time_window.average, loss, loss_window.average)
                 log(message, end="\r", slack=(step % args.checkpoint_interval == 0))

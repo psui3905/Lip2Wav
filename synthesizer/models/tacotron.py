@@ -503,6 +503,7 @@ class Tacotron():
                 
                 v = grad_and_vars[0][1]
                 if 'Tacotron_model/inference/encoder_convolutions' not in v.name:
+                    #print(v.name)
                     avg_grads.append(grad)
                     vars.append(v)
             
@@ -517,8 +518,8 @@ class Tacotron():
             # Add dependency on UPDATE_OPS; otherwise batchnorm won"t work correctly. See:
             # https://github.com/tensorflow/tensorflow/issues/1122
             with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
-                print('Optimizaer var list: ')
-                print(vars)
+                #print('Optimizaer var list: ')
+                #print(vars)
                 self.optimize = optimizer.apply_gradients(zip(clipped_gradients, vars),
                                                           global_step=global_step)
     
