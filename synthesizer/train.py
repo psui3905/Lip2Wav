@@ -153,6 +153,8 @@ def train(log_dir, args, hparams):
     
     # create conv3d saver
     chunk_weight = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, 'Tacotron_model/inference/encoder_convolutions')
+    # chunk_weight = tf.get_collection(tf.GraphKeys.UPDATE_OPS, 'Tacotron_model/inference/encoder_convolutions')
+    print(chunk_weight)
     conv3d_saver = tf.train.Saver(var_list=chunk_weight)
     
     log("Tacotron training set to a maximum of {} steps".format(args.tacotron_train_steps))
@@ -224,7 +226,7 @@ def train(log_dir, args, hparams):
                 time_window.append(time.time() - start_time)
                 loss_window.append(loss)
                 
-                print(conv3d_var)
+                # print(conv3d_var)
                 message = "Step {:7d} [{:.3f} sec/step, loss={:.5f}, avg_loss={:.5f}]".format(
                     step, time_window.average, loss, loss_window.average)
                 log(message, end="\r", slack=(step % args.checkpoint_interval == 0))
